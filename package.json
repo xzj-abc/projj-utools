@@ -1,0 +1,12 @@
+{
+    "name": "projj-path-finder",
+    "version": "1.0.0",
+    "description": "快速打开 Projj 管理的项目路径",
+    "main": "index.js",
+    "scripts": {
+        "start": "utools"
+    },
+    "dependencies": {
+        "utools-api": "^1.0.0"
+    }
+}
