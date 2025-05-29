@@ -16,7 +16,6 @@ function getProjjCacheList() {
 }
 let list  = []
 
-let isWebStorm = false
 window.exports = {
     "projj": {
         mode: "list",
@@ -36,12 +35,10 @@ window.exports = {
                     callbackSetList([]);
                     return;
                 }
-                const text = input.trim()
-                const searchText = text.split(' ')[0]
-                isWebStorm = text.split(' ')?.[1] === 'w'
-                console.log('searchText', searchText, searchText?.startsWith('clone git.@git'))
-                if (searchText?.startsWith('clone git@git')) {
-                    const gitUrl = searchText.replace('clone ', '').trim();
+                
+                if (input?.startsWith('clone git@git')) {
+                    const text = input.trim()
+                    const gitUrl = text.split(' ')[1]
                     callbackSetList([
                         {
                             title: '克隆 git 仓库',
@@ -51,6 +48,7 @@ window.exports = {
                     ]);
                     return;
                 }
+                const searchText = input.trim()
                 const matches = list.filter((item) => {
                     // 模糊匹配，不连续字符也匹配
                     return fuzzyMatch(searchText, item.title);
@@ -69,44 +67,22 @@ window.exports = {
                 callbackSetList(options)
             },
             // 用户选择列表中某个条目时被调用
-            // select: (action, itemData, callbackSetList) => {
-            //     if (itemData.type === 'clone') {
-            //         // window.services.execCommand(`projj add ${itemData.description}`);
-            //         // TODO 这里会报错，提示没有 node 环境
-            //         exec(`node -v`, (err) => {
-            //             if (err) {
-            //                 console.log('请先安装 node 环境', err)
-            //             }
-            //         })
-            //         // exec(`projj add ${itemData.description}`, (err) => {
-            //         //     if (err) {
-            //         //         console.log('克隆失败', err)
-            //         //     }
-            //         // })
-            //         return
-            //     }
-            //     openInWebStorm(itemData.title);
-            // },
             select: (action, itemData, callbackSetList) => {
                 if (itemData.type === 'clone') {
                     // 使用 utools.shellPath 获取正确的 Shell 路径
-                    const shellPath = utools.shellPath();
+                    const shellPath = '/Users/bilibili/.nvm/versions/node/v18.20.8/bin/node /Users/bilibili/.nvm/versions/node/v18.20.8/bin/projj'
 
                     // 使用 utools.shellExec 执行命令
-                    utools.shellExec(`${shellPath} -c "node -v"`, (stdout, stderr) => {
-                        if (stderr) {
-                            console.log('请先安装 node 环境', stderr);
+                    console.log('克隆', itemData.description)
+                    exec(`${shellPath} add ${itemData.description}`, (err) => {
+                        if (err) {
+                            console.log('克隆失败', err);
                         } else {
-                            console.log('Node.js 版本:', stdout);
-
-                            // 如果 Node.js 可用，继续执行 projj add 命令
-                            utools.shellExec(`${shellPath} -c "projj add ${itemData.description}"`, (stdout, stderr) => {
-                                if (stderr) {
-                                    console.log('克隆失败', stderr);
-                                } else {
-                                    console.log('克隆成功', stdout);
-                                }
-                            });
+                            console.log('克隆成功', stdout);
+                            // 打开项目
+                            list = getProjjCacheList()
+                            const title = list.find((item) => item.gitUrl === itemData.description)?.title
+                            openInWebStorm(title)
                         }
                     });
                     return;
@@ -122,7 +98,7 @@ window.exports = {
 // 打开 WebStorm
 function openInWebStorm(filePath) {
     if (!filePath) return
-    const shellPath = isWebStorm ? '/usr/local/bin/webstorm' : '/usr/local/bin/code'
+    const shellPath = '/usr/local/bin/code'
     exec(`${shellPath} ${filePath}`, (err) => {
         if (err) {
             console.log('打开 WebStorm 失败', err)
